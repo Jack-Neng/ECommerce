@@ -22,9 +22,18 @@ Database is deployed on AWS Rds
 Have a try on this link: https://competent-minsky-ccccf8.netlify.app/
 Followings are some picture of the project
 
-### 
-<img src="img/.png">
+### Main Page To List All Products Being Sold On Site
+<img src="img/productlist.png">
 
 
-### Say Hi To Your Friends And Let's Chat
-<img src="img/.png">
+### Adding Item To Cart
+<img src="img/product.png">
+
+
+### All Item In Cart
+<img src="img/cart.png">
+
+
+### Checkout Your Items
+<img src="img/checkout.png">
+
