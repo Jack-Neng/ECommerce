@@ -1,0 +1,4 @@
+https://devcenter.heroku.com/articles/heroku-postgresql
+$ heroku pg:psql
+$ heroku pg:reset postgresql-clean-38063 --app ecommerce-spring-react
+$ heroku pg:push ecommerce postgresql-clean-38063 --app ecommerce-spring-react
