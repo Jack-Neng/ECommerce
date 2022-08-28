@@ -9,6 +9,7 @@ Version 2.0 has been updated in 2022 Aug, update includes:
 - Added Favourite List implementations
 - Added Order History implementations
 - Update Product retrieval on Backend with different detail providers
+- Update to query with JDBC instead of JPA
 
 ## Technologies Used
 
