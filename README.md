@@ -23,17 +23,30 @@ Have a try on this link: https://competent-minsky-ccccf8.netlify.app/
 Followings are some picture of the project
 
 ### Main Page To List All Products Being Sold On Site
-<img src="img/productlist.png">
+<img src="img/v2/browse.PNG">
+
+
+### Create Your Favourite List
+<img src="img/v2/favourite.PNG">
 
 
 ### Adding Item To Cart
-<img src="img/product.png">
+<img src="img/v2/item.PNG">
+<img src="img/v2/addtocart.PNG">
 
 
 ### All Item In Cart
-<img src="img/cart.png">
+<img src="img/v2/cart.PNG">
 
 
 ### Checkout Your Items
-<img src="img/checkout.png">
+<img src="img/v2/checkout.PNG">
+
+
+### Place Your Order
+<img src="img/v2/orderplaced.PNG">
+
+
+### Track Your Orders
+<img src="img/v2/order.PNG">
 
