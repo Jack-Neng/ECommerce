@@ -1,0 +1,14 @@
+.BillingInfo {
+  width: 60%;
+}
+
+.PaymentInfo {
+  width: 40%;
+  padding: 30px;
+}
+
+.StepContent {
+  width: 50%;
+  min-width: 300px;
+  margin: 30px auto 20px;
+}

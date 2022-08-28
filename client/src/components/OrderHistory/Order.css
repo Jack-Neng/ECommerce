@@ -1,0 +1,22 @@
+.OrderCart {
+  border: 1px solid lightgray;
+  margin: 30px;
+}
+
+.OrderHeader {
+  background: lightgray;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.OrderItem {
+  margin-right: auto;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.OrderAction {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+}

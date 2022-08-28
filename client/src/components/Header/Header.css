@@ -1,0 +1,15 @@
+.HeaderButton {
+  color: white;
+}
+
+.MuiButtonBase-root:focus {
+  outline: none;
+}
+
+.MuiList-root > a:hover {
+  color: black;
+}
+/* 
+.searchBar {
+  width: 0px;
+} */

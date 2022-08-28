@@ -1,34 +1,38 @@
 package com.ecommerce.controller;
 
+import com.ecommerce.model.CustomerModel;
+import com.ecommerce.repository.CustomerRepositoryJdbc;
+import com.ecommerce.service.implementation.CustomerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
-import com.ecommerce.entity.Customer;
 import com.ecommerce.repository.CustomerRepository;
 
-@Controller
+import java.util.UUID;
+
+@RestController
+@Validated
 @RequestMapping(path = "/customer")
 public class CustomerController {
     @Autowired
     private CustomerRepository customerRepository;
 
-    @GetMapping()
-    public @ResponseBody Iterable<Customer> getAllCustomers() {
-        return customerRepository.findAll();
-    }
+    @Autowired
+    private CustomerRepositoryJdbc customerRepositoryJdbc;
+
+    @Autowired
+    private CustomerImpl customerImpl;
 
     @GetMapping(path = "/{customerId}")
-    public @ResponseBody Customer getCustomerById(@PathVariable Long customerId) {
-        return customerRepository.findByCustomerId(customerId);
+    public CustomerModel getCustomerById(@PathVariable UUID customerId) {
+        return customerRepositoryJdbc.getCustomerByUuid(customerId.toString());
     }
 
-    @GetMapping(path = "/current_user/{email}")
-    public @ResponseBody Long getCustomerIdByEmail(@PathVariable String email) {
-        return customerRepository.findByEmail(email).getCustomerId();
+    @PatchMapping()
+    public CustomerModel updateCustomer(@RequestBody CustomerModel customer) {
+        customerImpl.updateCustomer(customer);
+        return customer;
     }
 
 }

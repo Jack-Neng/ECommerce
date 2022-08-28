@@ -1,0 +1,14 @@
+.TextInput legend {
+  display: none;
+}
+
+.TextInput fieldset {
+  top: -2px;
+}
+
+.InputError {
+  color: red;
+  border: 1px red solid;
+  margin: 10px 0;
+  border-radius: 4px;
+}

@@ -1,0 +1,30 @@
+.GridControl {
+  display: flex;
+  justify-content: space-between;
+  height: 56px;
+}
+
+.GridControl > * {
+  margin: auto 15px;
+}
+
+.GridInfo {
+  display: flex;
+}
+
+.Sorting {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.Sorting p {
+  margin: auto 0;
+}
+
+.SortSelect legend {
+  display: none;
+}
+
+.SortSelect fieldset {
+  top: -2px;
+}

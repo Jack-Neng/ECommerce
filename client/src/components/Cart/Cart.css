@@ -1,0 +1,12 @@
+.Cart tr,
+.Cart td {
+  padding: 10px 0;
+}
+
+.Cart th {
+  color: grey;
+}
+
+.Cart a {
+  color: #000;
+}

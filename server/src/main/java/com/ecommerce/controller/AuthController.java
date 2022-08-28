@@ -1,20 +1,16 @@
 package com.ecommerce.controller;
 
-import java.util.Collections;
-
 import com.ecommerce.entity.Customer;
-import com.ecommerce.entity.Role;
-import com.ecommerce.entity.RoleName;
+import com.ecommerce.model.CustomerModel;
 import com.ecommerce.model.JwtAuthenticationResponse;
+import com.ecommerce.model.response.LoginResponse;
 import com.ecommerce.repository.CustomerRepository;
 import com.ecommerce.repository.RoleRepository;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.ecommerce.service.implementation.CustomerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -35,6 +31,9 @@ public class AuthController {
     CustomerRepository customerRepository;
 
     @Autowired
+    CustomerImpl customerImpl;
+
+    @Autowired
     RoleRepository roleRepository;
 
     @Autowired
@@ -44,19 +43,23 @@ public class AuthController {
     JwtTokenProvider tokenProvider;
 
     @PostMapping("/signin")
-    public ResponseEntity<?> authenticateCustomer(@RequestBody Customer customer) {
-        Authentication authentication = authenticationManager
-                .authenticate(new UsernamePasswordAuthenticationToken(customer.getEmail(), customer.getPassword()));
+    public ResponseEntity<?> authenticateCustomer(@RequestBody CustomerModel customer) {
+        String jwt = customerImpl.authenticate(customer.getEmail(), customer.getPassword());
 
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        CustomerModel currentCustomer = customerImpl.getCustomerByEmail(customer.getEmail());
+        customerImpl.assignNewCartId(currentCustomer, customer.getCartId());
 
-        String jwt = tokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+        LoginResponse response = new LoginResponse(
+                currentCustomer.getCustomerId().toString(),
+                customer.getCartId().toString(),
+                new JwtAuthenticationResponse(jwt).getAccessToken());
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerCustomer(@RequestBody Customer newCustomer) {
-        Customer customer = new Customer();
+    public ResponseEntity<?> registerCustomer(@RequestBody CustomerModel newCustomer) {
+        CustomerModel customer = new CustomerModel();
         customer.setEmail(newCustomer.getEmail());
         customer.setPassword(passwordEncoder.encode(newCustomer.getPassword()));
         customer.setFirstName(newCustomer.getFirstName());
@@ -67,11 +70,16 @@ public class AuthController {
         customer.setPostalCode(newCustomer.getPostalCode());
         customer.setCountry(newCustomer.getCountry());
         customer.setPhone(newCustomer.getPhone());
+        customer.setCartId(newCustomer.getCartId());
 
-        Role customerRole = roleRepository.findByRoleName(RoleName.ROLE_USER).orElseThrow(() -> new RuntimeException());
-        customer.setRoles(Collections.singleton(customerRole));
-        customerRepository.save(customer);
-        return ResponseEntity.ok("Customer registered successfully!");
+        customerImpl.createCustomer(customer);
+        String jwt = customerImpl.authenticate(newCustomer.getEmail(), newCustomer.getPassword());
+        LoginResponse response = new LoginResponse(
+                customer.getCustomerId().toString(),
+                customer.getCartId().toString(),
+                new JwtAuthenticationResponse(jwt).getAccessToken());
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/update")

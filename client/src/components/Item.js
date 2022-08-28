@@ -1,206 +1,166 @@
-import React, { Component } from "react";
+import React, { useEffect, useState, useCallback } from "react";
+import Department from "../components/Header/Department";
+import ItemAdded from "./Popup/ItemAdded";
 
-import axios from "axios";
-import { Button, FormControl, InputGroup, Form, Modal } from "react-bootstrap";
-import { Link } from "react-router-dom";
-import queryString from "query-string";
+import { InputGroup, Form, Modal } from "react-bootstrap";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
+import Breadcrumbs from "@mui/material/Breadcrumbs";
+import Typography from "@mui/material/Typography";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { ThemeProvider } from "@mui/material/styles";
+import { Button, IconButton } from "@mui/material";
+import RemoveIcon from "@mui/icons-material/Remove";
+import AddIcon from "@mui/icons-material/Add";
+import Chip from "@mui/material/Chip";
+import Stack from "@mui/material/Stack";
 
-import { API_BASE_URL } from "../constants";
+import {
+  getItemById,
+  addItemToCart,
+  updateItemInCart,
+} from "./Util/Requests.js";
+import { theme } from "./Util/Theme";
 
-export class Item extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      item: [],
-      qty: 1,
-      inCart: false,
-      cartItem: {
-        cartId: localStorage.getItem("CART_ID"),
-        productId: 0,
-        customerId: 0,
-        qty: 0,
-      },
-      modalShow: false,
-      addedToCart: "",
-    };
-  }
+export default function Item({ cartId, itemsInCart, setItemsInCart }) {
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get("id");
+  const [item, setItem] = useState([]);
+  const [qty, setQty] = useState(1);
+  const [modalShow, setModalShow] = useState(false);
 
-  componentDidMount() {
-    const { id } = queryString.parse(this.props.location.search);
-    axios
-      .get(`${API_BASE_URL}/product/${id}`)
-      .then((response) => response.data)
-      .then((data) => {
-        this.setState({ item: data });
-      });
-    axios
-      .get(`${API_BASE_URL}/cart/${this.state.cartItem.cartId}/${id}`)
-      .then((response) => response.data)
-      .then((data) => {
-        data === 0
-          ? this.setState({ inCart: false })
-          : this.setState({ inCart: true, qty: data });
-      });
-  }
-
-  closeModal = (event) => {
-    event.preventDefault();
-    this.setState({ modalShow: false });
+  const findItemById = async () => {
+    const data = await getItemById(id);
+    setItem(data);
   };
 
-  addToCart = async (event) => {
+  useEffect(() => {
+    findItemById();
+  }, []);
+
+  const addToCart = async (event) => {
     event.preventDefault();
-    const cartItem = this.state.cartItem;
-    cartItem.cartId = localStorage.getItem("CART_ID");
-    cartItem.customerId = 1;
-    cartItem.qty = this.state.qty;
-    cartItem.productId = this.state.item.productId;
-    this.setState({ cartItem });
-    if (this.state.inCart === false) {
-      await axios
-        .post(`${API_BASE_URL}/cart/add`, cartItem)
-        .then((response) => response.data)
-        .then((data) => {
-          this.setState({ addedToCart: data, inCart: true });
-        });
+    const currentItems = [...itemsInCart];
+    const itemInCart = currentItems.find((item) => item.productId == id);
+    if (itemInCart) {
+      itemInCart.qty += qty;
+      itemInCart.cartId = cartId;
+      const data = await updateItemInCart(itemInCart);
+      setItemsInCart(itemsInCart);
+      setModalShow(true);
     } else {
-      await axios
-        .put(`${API_BASE_URL}/cart/${cartItem.cartId}`, cartItem)
-        .then((response) => response.data)
-        .then((data) => {
-          this.setState({ addedToCart: data });
-        });
-    }
-    if (
-      this.state.addedToCart === "saved" ||
-      this.state.addedToCart === "updated"
-    ) {
-      this.setState({ modalShow: true });
+      let newItemInCart = {
+        cartId: cartId,
+        qty: qty,
+        productId: item.productId,
+      };
+      const data = await addItemToCart(newItemInCart);
+      setItemsInCart([newItemInCart, ...itemsInCart]);
+      setModalShow(true);
     }
   };
 
-  render() {
-    return (
+  return (
+    <>
+      <Department />
       <div className="m-auto" style={{ width: "70%" }}>
-        <a href="/index">All</a>
-        <span>{">"}</span>
-        <Link to={`/department/${this.state.item.department}`}>
-          {this.state.item.department}
-        </Link>
-        <span>
-          {">"}
-          {this.state.item.productName}
-        </span>
+        <div className="GridControl">
+          <div className="GridInfo">
+            <Breadcrumbs
+              aria-label="breadcrumb"
+              separator={<NavigateNextIcon fontSize="small" />}
+            >
+              <Link style={{ color: "inherit" }} to="/browse">
+                All
+              </Link>
+              <Link
+                style={{ color: "inherit" }}
+                to={`/browse/${item.department}`}
+              >
+                {item.department}
+              </Link>
+              <Typography key="3" color="text.primary">
+                <span>{item.name}</span>
+              </Typography>
+            </Breadcrumbs>
+          </div>
+        </div>
         <div className="row mt-4 ">
           <div className="col" style={{ textAlign: "center" }}>
             <img
-              src={this.state.item.img}
+              src={item.img}
               style={{ maxWidth: "100%", maxHeight: "500px" }}
             />
           </div>
           <div className="col align-self-center">
-            <h3>{this.state.item.productName}</h3>
-            <p>{this.state.item.productDescription}</p>
-            <p>${this.state.item.unitPrice}</p>
-            <Form onSubmit={this.addToCart}>
+            <h3>{item.name}</h3>
+            <p>{item.description}</p>
+            <Stack direction="row" spacing={1}>
+              {item.size && (
+                <Chip label={"Size: " + item.size} variant="outlined" />
+              )}
+              {item.colour && (
+                <Chip label={"Colour: " + item.colour} variant="outlined" />
+              )}
+              {item.gender && (
+                <Chip label={"Gender: " + item.gender} variant="outlined" />
+              )}
+              {item.type && <Chip label={item.type} variant="outlined" />}
+              {item.brand && <Chip label={item.brand} variant="outlined" />}
+              {item.location && (
+                <Chip label={item.location} variant="outlined" />
+              )}
+            </Stack>
+            <p>${item.unitPrice}</p>
+            <Form onSubmit={addToCart}>
               <Form.Group>
                 <div style={{ width: "150px" }}>
                   <InputGroup>
-                    <InputGroup.Prepend>
-                      <Button
-                        variant="outline-primary"
-                        onClick={(event) =>
-                          this.state.qty <= 1
-                            ? null
-                            : this.setState({ qty: (this.state.qty -= 1) })
-                        }
-                      >
-                        -
-                      </Button>
-                    </InputGroup.Prepend>
-                    <FormControl
+                    <IconButton
+                      size="small"
+                      variant="outlined"
+                      onClick={(event) => (qty <= 1 ? null : setQty(qty - 1))}
+                    >
+                      <RemoveIcon />
+                    </IconButton>
+
+                    <Form.Control
                       className="text-center"
                       name="qty"
-                      value={this.state.qty}
+                      value={qty}
                       onChange={(event) =>
                         event.target.value.isNaN
                           ? null
-                          : this.setState({
-                              [event.target.name]: parseInt(event.target.value),
-                            })
+                          : setQty(parseInt(event.target.value))
                       }
                     />
-                    <InputGroup.Append>
-                      <Button
-                        variant="outline-primary"
-                        onClick={(event) => {
-                          this.setState({ qty: (this.state.qty += 1) });
-                        }}
-                      >
-                        +
-                      </Button>
-                    </InputGroup.Append>
+                    <IconButton
+                      size="small"
+                      variant="outlined"
+                      onClick={(event) => {
+                        setQty(qty + 1);
+                      }}
+                    >
+                      <AddIcon />
+                    </IconButton>
                   </InputGroup>
                 </div>
               </Form.Group>
-              <Button type="submit" variant="outline-primary">
-                Add to Cart
-              </Button>
+              <ThemeProvider theme={theme}>
+                <Button variant="outlined" color="neutral" onClick={addToCart}>
+                  Add to Cart
+                </Button>
+              </ThemeProvider>
 
-              <Modal show={this.state.modalShow}>
-                <Modal.Header>
-                  Your Item(s) has been added to cart!
-                </Modal.Header>
-                <Modal.Body>
-                  <div className="row mt-4 ">
-                    <div
-                      className="col"
-                      style={{
-                        height: "10em",
-                        textAlign: "center",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      <img
-                        src={this.state.item.img}
-                        style={{ maxHeight: "100%" }}
-                      />
-                    </div>
-                    <div
-                      className="col"
-                      style={{
-                        height: "10em",
-                        verticalAlign: "middle",
-                      }}
-                    >
-                      <h3>{this.state.item.productName}</h3>
-                      <span>Quantity: {this.state.qty}</span>
-                      <br />
-                      <span>
-                        Estimated Price: $
-                        {this.state.qty * this.state.item.unitPrice}
-                      </span>
-                    </div>
-                  </div>
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button
-                    variant="outline-primary"
-                    onClick={(event) => this.closeModal(event)}
-                  >
-                    Continue Shopping
-                  </Button>
-                  <Link className="btn btn-primary" to="/cart">
-                    Go To Cart
-                  </Link>
-                </Modal.Footer>
-              </Modal>
+              <ItemAdded
+                modalShow={modalShow}
+                setModalShow={setModalShow}
+                item={item}
+                qty={qty}
+              />
             </Form>
           </div>
         </div>
       </div>
-    );
-  }
+    </>
+  );
 }
-
-export default Item;

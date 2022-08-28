@@ -1,181 +1,243 @@
-import React, { Component } from "react";
-import { Form, Button } from "react-bootstrap";
+import React, { useEffect, useState } from "react";
+import Grid from "@mui/material/Grid";
+import Button from "@mui/material/Button";
+import FormControl from "@mui/material/FormControl";
+import OutlinedInput from "@mui/material/OutlinedInput";
+import { ThemeProvider } from "@mui/material/styles";
+import { theme } from "./Util/Theme";
 
-import axios from "axios";
+import { getCurrentUser, updateCustomer } from "./Util/Requests";
 
-import { API_BASE_URL } from "../constants";
+export default function Profile() {
+  const [customerId, setCustomerId] = useState(
+    localStorage.getItem("CUSTOMER_ID")
+  );
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordC, setPasswordC] = useState("");
+  const [checked, setChecked] = useState(false);
+  const [modalShow, setModalShow] = useState(false);
+  const [changeProfile, setChangeProfile] = useState(false);
+  const [error, setError] = useState(false);
+  const accessToken = sessionStorage.getItem("ACCESS_TOKEN");
 
-export class Profile extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      customerId: localStorage.getItem("CUSTOMER_ID"),
-      email: "",
-      firstName: "",
-      lastName: "",
-      address: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "",
-      phone: "",
-      password: "",
-      passwordC: "",
-      checked: false,
-      modalShow: false,
-      changeProfile: false,
-    };
-  }
+  useEffect(() => {
+    loadProfile();
+  }, []);
 
-  componentDidMount() {
-    this.loadProfile();
-  }
-
-  loadProfile = () => {
-    const accessToken = localStorage.getItem("ACCESS_TOKEN");
-    axios
-      .get(`${API_BASE_URL}/customer/${this.state.customerId}`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      })
-      .then((response) => response.data)
-      .then((data) =>
-        this.setState({
-          email: data.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          address: data.address,
-          city: data.city,
-          state: data.state,
-          postalCode: data.postalCode,
-          country: data.country,
-          phone: data.phone,
-        })
-      );
+  const onEnter = (e) => {
+    if (e.keyCode == 13) {
+      e.preventDefault();
+      // createAccount(e);
+    }
   };
 
-  render() {
-    return (
-      <div style={{ width: "50%", margin: "auto", marginBottom: "200px" }}>
-        {!this.state.changeProfile ? (
+  const loadProfile = async () => {
+    const data = await getCurrentUser(customerId, accessToken);
+    setEmail(data.email);
+    setFirstName(data.firstName);
+    setLastName(data.lastName);
+    setAddress(data.address);
+    setCity(data.city);
+    setState(data.state);
+    setPostalCode(data.postalCode);
+    setCountry(data.country);
+    setPhone(data.phone);
+  };
+
+  const updateCustomerProfile = async () => {
+    const customer = {
+      firstName,
+      lastName,
+      address,
+      city,
+      state,
+      postalCode,
+      country,
+      phone,
+      email,
+    };
+    const data = await updateCustomer(customer, accessToken);
+  };
+
+  return (
+    <div
+      style={{
+        width: "50%",
+        margin: "auto",
+        marginBottom: "200px",
+        padding: "20px 0",
+      }}
+    >
+      <ThemeProvider theme={theme}>
+        <h3>My Profile</h3>
+        <div>
+          <h5>Personal Information</h5>
           <div>
-            <h3>Customer Profile</h3>
-            <div style={{ float: "left" }}>
-              <h5>Personal Information</h5>
-              <div>
-                <p>
-                  {this.state.firstName} {this.state.lastName}
-                </p>
-                <p>{this.state.email}</p>
-                <p>{this.state.phone}</p>
-              </div>
-              <h5>Address</h5>
-              <div>
-                <p>{this.state.address}</p>
-                <p>
-                  {this.state.city} {this.state.state}
-                </p>
-                <p>{this.state.postalCode}</p>
-                <p>{this.state.country}</p>
-              </div>
-            </div>
-            <Button
-              style={{ float: "right" }}
-              onClick={(event) => {
-                event.preventDefault();
-                this.setState({ changeProfile: true });
-              }}
+            <Grid
+              container
+              rowSpacing={1}
+              columnSpacing={{ xs: 1, sm: 2, md: 3 }}
             >
-              Change Profile
+              <Grid item xs={6}>
+                <FormControl
+                  className="TextInput"
+                  sx={{ m: "10px 0", width: "100%" }}
+                  variant="outlined"
+                >
+                  <OutlinedInput
+                    error={error && firstName === ""}
+                    sx={{ height: 38 }}
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                    onKeyDown={onEnter}
+                    placeholder="First Name"
+                  />
+                </FormControl>
+              </Grid>
+              <Grid item xs={6}>
+                <FormControl
+                  className="TextInput"
+                  sx={{ m: "10px 0", width: "100%" }}
+                  variant="outlined"
+                >
+                  <OutlinedInput
+                    error={error && lastName === ""}
+                    sx={{ height: 38 }}
+                    value={lastName}
+                    onChange={(event) => setLastName(event.target.value)}
+                    onKeyDown={onEnter}
+                    placeholder="Last Name"
+                  />
+                </FormControl>
+              </Grid>
+            </Grid>
+
+            <FormControl
+              className="TextInput"
+              sx={{ m: "10px 0", width: "100%" }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                error={error && email === ""}
+                sx={{ height: 38 }}
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                onKeyDown={onEnter}
+                placeholder="Email"
+              />
+            </FormControl>
+            <FormControl
+              className="TextInput"
+              sx={{ m: "10px 0", width: "100%" }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                sx={{ height: 38 }}
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                onKeyDown={onEnter}
+                placeholder="Phone"
+              />
+            </FormControl>
+          </div>
+        </div>
+
+        <div>
+          <h5>Address</h5>
+          <div>
+            <FormControl
+              className="TextInput"
+              sx={{ m: "10px 0", width: "100%" }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                error={error && address === ""}
+                sx={{ height: 38 }}
+                value={address}
+                onChange={(event) => setAddress(event.target.value)}
+                onKeyDown={onEnter}
+                placeholder="Street"
+              />
+            </FormControl>
+            <FormControl
+              className="TextInput"
+              sx={{ m: "10px 0", width: "100%" }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                error={error && city === ""}
+                sx={{ height: 38 }}
+                value={city}
+                onChange={(event) => setCity(event.target.value)}
+                onKeyDown={onEnter}
+                placeholder="City"
+              />
+            </FormControl>
+            <FormControl
+              className="TextInput"
+              sx={{ m: "10px 0", width: "100%" }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                error={error && state === ""}
+                sx={{ height: 38 }}
+                value={state}
+                onChange={(event) => setState(event.target.value)}
+                onKeyDown={onEnter}
+                placeholder="State"
+              />
+            </FormControl>
+            <FormControl
+              className="TextInput"
+              sx={{ m: "10px 0", width: "100%" }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                error={error && postalCode === ""}
+                sx={{ height: 38 }}
+                value={postalCode}
+                onChange={(event) => setPostalCode(event.target.value)}
+                onKeyDown={onEnter}
+                placeholder="Postal Code"
+              />
+            </FormControl>
+            <FormControl
+              className="TextInput"
+              sx={{ m: "10px 0", width: "100%" }}
+              variant="outlined"
+            >
+              <OutlinedInput
+                error={error && country === ""}
+                sx={{ height: 38 }}
+                value={country}
+                onChange={(event) => setCountry(event.target.value)}
+                onKeyDown={onEnter}
+                placeholder="Country"
+              />
+            </FormControl>
+          </div>
+          <div>
+            <Button
+              variant="contained"
+              color="neutral"
+              style={{ float: "right" }}
+              type="submit"
+              onClick={updateCustomerProfile}
+            >
+              Update Profile
             </Button>
           </div>
-        ) : (
-          <div>
-            <h3>Change Profile</h3>
-            <Form>
-              <Form.Group>
-                <Form.Label>Address</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={this.state.address}
-                  onChange={(event) =>
-                    this.setState({ address: event.target.value })
-                  }
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>City</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={this.state.city}
-                  onChange={(event) =>
-                    this.setState({ city: event.target.value })
-                  }
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>State</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={this.state.state}
-                  onChange={(event) =>
-                    this.setState({ state: event.target.value })
-                  }
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Postal Code</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={this.state.postalCode}
-                  onChange={(event) =>
-                    this.setState({ postalCode: event.target.value })
-                  }
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Country</Form.Label>
-                <Form.Control
-                  type="text"
-                  value={this.state.country}
-                  onChange={(event) =>
-                    this.setState({ country: event.target.value })
-                  }
-                />
-              </Form.Group>
-              <Form.Group>
-                <Form.Label>Phone</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Optional"
-                  value={this.state.phone}
-                  onChange={(event) =>
-                    this.setState({ phone: event.target.value })
-                  }
-                />
-              </Form.Group>
-              <div>
-                <Button
-                  style={{ float: "left" }}
-                  variant="danger"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    this.setState({ changeProfile: false });
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button style={{ float: "right" }} type="submit">
-                  Save
-                </Button>
-              </div>
-            </Form>
-          </div>
-        )}
-      </div>
-    );
-  }
+        </div>
+      </ThemeProvider>
+    </div>
+  );
 }
-
-export default Profile;
