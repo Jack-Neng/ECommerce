@@ -2,6 +2,14 @@
 
 This project is a E-Commerce Site for people to do shopping online
 
+## Verson
+
+Version 2.0 has been updated in 2022 Aug, update includes:
+- UI update with Material UI v5.10.2
+- Added Favourite List implementations
+- Added Order History implementations
+- Update Product retrieval on Backend with different detail providers
+
 ## Technologies Used
 
 JavaScript React.js is used to create the frontend app
